@@ -49,46 +49,44 @@ public class JPMorganAssessment {
         Tracker tracker = new Tracker();
 
         int messages = 0;
-        if (args.length > 0) {
-            File file = new File(args[0]);
-            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    Matcher messageType1Matcher = MESSAGE_TYPE_1_REGEX_PATTERN.matcher(line);
-                    Matcher messageType2Matcher = MESSAGE_TYPE_2_REGEX_PATTERN.matcher(line);
-                    Matcher adjustmentMessageMatcher = ADJUSTMENT_MESSAGE_PATTERN.matcher(line);
+        File file = args.length > 0 ? new File(args[0]) : new File("sample_data.txt");
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                Matcher messageType1Matcher = MESSAGE_TYPE_1_REGEX_PATTERN.matcher(line);
+                Matcher messageType2Matcher = MESSAGE_TYPE_2_REGEX_PATTERN.matcher(line);
+                Matcher adjustmentMessageMatcher = ADJUSTMENT_MESSAGE_PATTERN.matcher(line);
 
-                    //If the current line in the input file matches one of the formats of
-                    //acceptable messages then create the appropriate object and update
-                    //the tracker with it
-                    if (messageType1Matcher.matches()) {
-                        Sale sale = new Sale(messageType1Matcher.group(1).toLowerCase(), Double.parseDouble(messageType1Matcher.group(3)), 1);
-                        tracker.updateSalesByProduct(sale);
+                //If the current line in the input file matches one of the formats of
+                //acceptable messages then create the appropriate object and update
+                //the tracker with it
+                if (messageType1Matcher.matches()) {
+                    Sale sale = new Sale(messageType1Matcher.group(1).toLowerCase(), Double.parseDouble(messageType1Matcher.group(3)), 1);
+                    tracker.updateSalesByProduct(sale);
 
-                    } else if (messageType2Matcher.matches()) {
-                        Sale sale = new Sale(messageType2Matcher.group(1).toLowerCase(), Double.parseDouble(messageType2Matcher.group(3)), Integer.parseInt(messageType2Matcher.group(5)));
-                        tracker.updateSalesByProduct(sale);
+                } else if (messageType2Matcher.matches()) {
+                    Sale sale = new Sale(messageType2Matcher.group(1).toLowerCase(), Double.parseDouble(messageType2Matcher.group(3)), Integer.parseInt(messageType2Matcher.group(5)));
+                    tracker.updateSalesByProduct(sale);
 
-                    } else if (adjustmentMessageMatcher.matches()) {
-                        Adjustment adjustment = buildAdjustment(adjustmentMessageMatcher);
-                        tracker.performAdjustmentAndAddToList(adjustment);
-
-                    }
-
-                    //If log sales reports every 10 messages
-                    if (messages % SALES_REPORT_NUMBER == 0) {
-                        logSalesReport(tracker);
-                    }
-
-                    //Log adjustment report every 50 messages
-                    if (messages % ADJUSTMENT_REPORT_NUMBER == 0) {
-                        System.out.println("Please wait, sales adjustments are being recorded.");
-                        logAdjustmentsReport(tracker);
-                    }
+                } else if (adjustmentMessageMatcher.matches()) {
+                    Adjustment adjustment = buildAdjustment(adjustmentMessageMatcher);
+                    tracker.performAdjustmentAndAddToList(adjustment);
 
                 }
 
+                //If log sales reports every 10 messages
+                if (messages % SALES_REPORT_NUMBER == 0) {
+                    logSalesReport(tracker);
+                }
+
+                //Log adjustment report every 50 messages
+                if (messages % ADJUSTMENT_REPORT_NUMBER == 0) {
+                    System.out.println("Please wait, sales adjustments are being recorded.");
+                    logAdjustmentsReport(tracker);
+                }
+
             }
+
         }
     }
 
@@ -133,7 +131,8 @@ public class JPMorganAssessment {
     /**
      * Loop through the list of adjustments, convert to a readable string fornat
      * and print to the console
-     * @param tracker 
+     *
+     * @param tracker
      */
     private static void logAdjustmentsReport(Tracker tracker) {
 
